@@ -14,17 +14,17 @@ Forklift doesn't natively support automatic theme switching for custom themes. T
 
 ```bash
 swiftc forklift-theme-switcher.swift -o forklift-theme-switcher -framework Cocoa
-launchctl load ~/Library/LaunchAgents/com.anthimeros.forklift-theme-switcher.plist
+launchctl load ~/Library/LaunchAgents/forklift-theme-switcher.plist
 ```
 
 ## Commands
 
 ```bash
 # Stop
-launchctl unload ~/Library/LaunchAgents/com.anthimeros.forklift-theme-switcher.plist
+launchctl unload ~/Library/LaunchAgents/forklift-theme-switcher.plist
 
 # Start
-launchctl load ~/Library/LaunchAgents/com.anthimeros.forklift-theme-switcher.plist
+launchctl load ~/Library/LaunchAgents/forklift-theme-switcher.plist
 
 # Logs
 cat /tmp/forklift-theme-switcher.log
