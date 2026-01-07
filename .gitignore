@@ -1,0 +1,6 @@
+# Compiled binary
+forklift-theme-switcher
+!forklift-theme-switcher.swift
+
+# macOS
+.DS_Store
