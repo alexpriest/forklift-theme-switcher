@@ -1,7 +1,15 @@
 #!/usr/bin/env swift
 
 import Cocoa
-import Foundation
+
+// Disable stdout buffering for immediate log output
+setbuf(stdout, nil)
+
+func log(_ message: String) {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    print("[\(formatter.string(from: Date()))] \(message)")
+}
 
 // MARK: - Configuration
 
@@ -12,7 +20,7 @@ let forkliftBundleID = "com.binarynights.ForkLift"
 // MARK: - Theme Detection
 
 func isDarkMode() -> Bool {
-    UserDefaults.standard.string(forKey: "AppleInterfaceStyle")?.lowercased() == "dark"
+    NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
 }
 
 func getCurrentTheme() -> String? {
@@ -42,11 +50,11 @@ func restartForklift() {
     let workspace = NSWorkspace.shared
 
     guard let forklift = workspace.runningApplications.first(where: { $0.bundleIdentifier == forkliftBundleID }) else {
-        print("Forklift is not running, skipping restart")
+        log("Forklift is not running, skipping restart")
         return
     }
 
-    print("Restarting Forklift...")
+    log("Restarting Forklift...")
     forklift.terminate()
 
     // Wait for quit, then relaunch
@@ -56,9 +64,9 @@ func restartForklift() {
 
         workspace.openApplication(at: url, configuration: config) { _, error in
             if let error = error {
-                print("Failed to relaunch Forklift: \(error)")
+                log("Failed to relaunch Forklift: \(error)")
             } else {
-                print("Forklift relaunched")
+                log("Forklift relaunched")
             }
         }
     }
@@ -69,27 +77,47 @@ func updateTheme() {
     let currentThemeID = getCurrentTheme()
 
     if currentThemeID == targetThemeID {
-        print("Theme already set correctly")
+        log("Theme already set correctly (\(isDarkMode() ? "dark" : "light"))")
         return
     }
 
-    print("Switching to \(isDarkMode() ? "dark" : "light") theme...")
+    log("Switching to \(isDarkMode() ? "dark" : "light") theme...")
     setForkliftTheme(themeID: targetThemeID)
     restartForklift()
 }
 
-// MARK: - Main
+// MARK: - Appearance Observer
 
-updateTheme()
+class AppearanceObserver: NSObject {
+    override init() {
+        super.init()
+        NSApp.addObserver(self, forKeyPath: "effectiveAppearance", options: [.new], context: nil)
+    }
 
-DistributedNotificationCenter.default().addObserver(
-    forName: NSNotification.Name("AppleInterfaceThemeChangedNotification"),
-    object: nil,
-    queue: .main
-) { _ in
-    print("Appearance changed!")
-    updateTheme()
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "effectiveAppearance" {
+            log("Appearance changed to \(isDarkMode() ? "dark" : "light") mode")
+            updateTheme()
+        }
+    }
+
+    deinit {
+        NSApp.removeObserver(self, forKeyPath: "effectiveAppearance")
+    }
 }
 
-print("Watching for appearance changes...")
-RunLoop.main.run()
+// MARK: - Main
+
+// Create a minimal Cocoa app to enable KVO on appearance
+let app = NSApplication.shared
+app.setActivationPolicy(.prohibited)  // No dock icon, no menu bar
+
+// Initial check
+updateTheme()
+
+// Set up KVO observer for appearance changes (event-driven, no polling)
+let observer = AppearanceObserver()
+_ = observer  // Keep alive
+
+log("Watching for appearance changes (event-driven via KVO)...")
+app.run()
