@@ -6,8 +6,7 @@
     <string>forklift-theme-switcher</string>
     <key>ProgramArguments</key>
     <array>
-        <!-- UPDATE THIS PATH -->
-        <string>/Users/YOUR_USERNAME/Code/forklift-theme-switcher/forklift-theme-switcher</string>
+        <string>/Users/alex/Code/tools/forklift-theme-switcher/forklift-theme-switcher</string>
     </array>
     <key>RunAtLoad</key>
     <true/>

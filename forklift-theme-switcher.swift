@@ -1,6 +1,7 @@
 #!/usr/bin/env swift
 
 import Cocoa
+import Foundation
 
 // Disable stdout buffering for immediate log output
 setbuf(stdout, nil)
@@ -13,8 +14,34 @@ func log(_ message: String) {
 
 // MARK: - Configuration
 
-let lightThemeID = "DDA59832-D2D9-4807-BA70-67DEB3A02D52"
-let darkThemeID = "2DC76F00-0EDB-4764-B1D5-D5187174A7BC"
+struct Config: Decodable {
+    let lightThemeID: String
+    let darkThemeID: String
+}
+
+func loadConfig() -> Config {
+    let binaryPath = URL(fileURLWithPath: CommandLine.arguments[0])
+        .deletingLastPathComponent()
+    let configPath = binaryPath.appendingPathComponent("config.json")
+
+    guard FileManager.default.fileExists(atPath: configPath.path) else {
+        log("ERROR: config.json not found at \(configPath.path)")
+        log("Copy config.json.template to config.json and fill in your theme IDs")
+        exit(1)
+    }
+
+    do {
+        let data = try Data(contentsOf: configPath)
+        return try JSONDecoder().decode(Config.self, from: data)
+    } catch {
+        log("ERROR: Failed to read config.json: \(error)")
+        exit(1)
+    }
+}
+
+let config = loadConfig()
+log("Config loaded: light=\(config.lightThemeID), dark=\(config.darkThemeID)")
+
 let forkliftBundleID = "com.binarynights.ForkLift"
 
 // MARK: - Theme Detection
@@ -73,7 +100,7 @@ func restartForklift() {
 }
 
 func updateTheme() {
-    let targetThemeID = isDarkMode() ? darkThemeID : lightThemeID
+    let targetThemeID = isDarkMode() ? config.darkThemeID : config.lightThemeID
     let currentThemeID = getCurrentTheme()
 
     if currentThemeID == targetThemeID {

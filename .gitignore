@@ -2,5 +2,8 @@
 forklift-theme-switcher
 !forklift-theme-switcher.swift
 
+# Machine-specific config
+config.json
+
 # macOS
 .DS_Store

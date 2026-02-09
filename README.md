@@ -6,47 +6,43 @@ Automatically switches [ForkLift's](https://binarynights.com/) theme to match ma
 
 ForkLift supports custom themes but doesn't automatically switch between them when macOS appearance changes. This utility watches for appearance changes and restarts ForkLift with the appropriate theme.
 
-## Setup
+## Quick Setup
 
 ### 1. Create your themes in ForkLift
 
 Create both a light and dark theme in ForkLift's preferences.
 
-### 2. Find your theme IDs
+### 2. Discover your theme IDs
 
 ```bash
-defaults read com.binarynights.ForkLift theme
+./install.sh --discover
 ```
 
-This shows your current theme's ID. Switch to your other theme and run it again to get both IDs.
+This walks you through selecting each theme in ForkLift and writes `config.json` automatically.
 
-### 3. Update the script
-
-Edit `forklift-theme-switcher.swift` and replace the theme IDs:
-
-```swift
-let lightThemeID = "YOUR-LIGHT-THEME-UUID"
-let darkThemeID = "YOUR-DARK-THEME-UUID"
-```
-
-### 4. Compile
+### 3. Install
 
 ```bash
-swiftc forklift-theme-switcher.swift -o forklift-theme-switcher -framework Cocoa
+./install.sh
 ```
 
-### 5. Install the Launch Agent
+Compiles the binary, symlinks the LaunchAgent, and starts it.
 
-```bash
-# Copy and edit the template
-cp forklift-theme-switcher.plist.template ~/Library/LaunchAgents/forklift-theme-switcher.plist
+## Manual Setup
 
-# Edit to set your actual path
-nano ~/Library/LaunchAgents/forklift-theme-switcher.plist
+If you prefer to set up manually:
 
-# Load it
-launchctl load ~/Library/LaunchAgents/forklift-theme-switcher.plist
-```
+1. Copy `config.json.template` to `config.json`
+2. Find your theme IDs by switching themes and running:
+   ```bash
+   defaults read com.binarynights.ForkLift theme
+   ```
+3. Fill in the IDs in `config.json`
+4. Run `./install.sh`
+
+## Machine Sync
+
+The source code and plist sync between machines via Syncthing. `config.json` is per-machine (gitignored + stignored) since theme UUIDs differ. On a new machine, just run `./install.sh --discover` then `./install.sh`.
 
 ## Commands
 
@@ -66,9 +62,10 @@ cat /tmp/forklift-theme-switcher.log
 
 ## How it works
 
-1. Listens for `AppleInterfaceThemeChangedNotification` via `DistributedNotificationCenter`
-2. Updates ForkLift's theme preference in its plist
-3. Restarts ForkLift to apply the change
+1. Reads theme IDs from `config.json` at startup
+2. Watches for macOS appearance changes via KVO on `NSApp.effectiveAppearance`
+3. Updates ForkLift's theme preference via `defaults write`
+4. Restarts ForkLift to apply the change
 
 ## License
 
