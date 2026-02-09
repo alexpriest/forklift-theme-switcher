@@ -23,6 +23,7 @@ import subprocess
 import plistlib
 import json
 import sys
+import base64
 
 DOMAIN = "com.binarynights.ForkLift"
 LIGHT_ID = "A1B2C3D4-1111-4000-8000-F1EC01110001"
@@ -72,7 +73,8 @@ try:
     if "themes" in plist:
         themes_data = plist["themes"]
         if isinstance(themes_data, bytes):
-            existing_themes = plistlib.loads(themes_data)
+            # ForkLift stores themes as JSON bytes
+            existing_themes = json.loads(themes_data)
         elif isinstance(themes_data, list):
             existing_themes = themes_data
 except (subprocess.CalledProcessError, Exception) as e:
@@ -91,14 +93,12 @@ existing_themes = [
 existing_themes.append(flexoki_light)
 existing_themes.append(flexoki_dark)
 
-# Encode the themes array as plist data
-themes_plist_data = plistlib.dumps(existing_themes, fmt=plistlib.FMT_BINARY)
-
-# Write back via defaults
-# defaults write expects -data as hex string
-hex_string = themes_plist_data.hex()
+# Encode as JSON bytes and write via defaults using <data> format (same as catppuccin)
+json_bytes = json.dumps(existing_themes, separators=(",", ":")).encode("utf-8")
+b64 = base64.b64encode(json_bytes).decode("ascii")
+plist_value = f"<data>{b64}</data>"
 subprocess.run(
-    ["defaults", "write", DOMAIN, "themes", "-data", hex_string],
+    ["defaults", "write", DOMAIN, "themes", plist_value],
     check=True
 )
 
