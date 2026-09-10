@@ -1,6 +1,14 @@
-# Forklift Theme Switcher
+# forklift-theme-switcher
 
-Automatically switches [ForkLift's](https://binarynights.com/) theme to match macOS light/dark mode.
+Switches ForkLift's theme when macOS switches between light and dark, which ForkLift does not do on its own.
+
+## Status
+
+Shipped — watches macOS appearance and restarts ForkLift with the matching theme.
+
+## License
+
+Not licensed for reuse.
 
 ## Why?
 
