@@ -48,4 +48,6 @@ print(json.dumps(out, separators=(",", ":")).encode().hex())
 PYTHON_SCRIPT
 )
 defaults write com.binarynights.ForkLift themes -data "$HEX"
+# Overlay scrollers, as Bartleby does: the global "Automatic" shows permanent tracks with a mouse attached.
+defaults write com.binarynights.ForkLift AppleShowScrollBars -string WhenScrolling
 echo "Claude themes installed. Relaunch ForkLift to see them."
